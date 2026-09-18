@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install (keyword search only, no torch)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check . && ruff format --check .
+      - name: Test
+        run: pytest -q
+      - name: Docs in sync with code
+        run: python -c "from contextsearch.config import Settings; import pathlib; assert pathlib.Path('docs/CONFIGURATION.md').read_text(encoding='utf-8').replace(chr(13), '') == Settings.markdown_reference(), 'run: contextsearch config --markdown > docs/CONFIGURATION.md'"
+
+  docker:
+    name: docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: docker build -t contextsearch -f docker/Dockerfile .
+      - name: Test inside the image
+        run: docker run --rm contextsearch python -m pytest -q

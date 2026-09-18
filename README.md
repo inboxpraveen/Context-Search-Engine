@@ -1,537 +1,171 @@
-# Context Search Engine
+# contextsearch
 
-> An AI-powered semantic document search platform for learning, research, and real-world experimentation
+[![CI](https://github.com/inboxpraveen/context-search-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/inboxpraveen/context-search-engine/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-![Project Overview](./static/images/Project-Overview.png)
+contextsearch is a self-hosted search engine for your own documents. Point it at a folder of PDFs, Word and PowerPoint files, text, Markdown or HTML, and it indexes them, watches them for changes and answers queries with the page, the exact passage and the reasons a result ranked where it did. It combines keyword search (BM25) with semantic search (embeddings), fuses the two, and can rerank the top candidates with a cross-encoder. There is no language model rewriting anything: what you see is what the retrieval found.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+<p align="center">
+  <img src="docs/images/search-evidence.jpg" alt="Search results with the evidence panel open" width="900" />
+</p>
 
-## 🎯 What is this Project?
+## What it does
 
-This project is a hands-on learning tool and experimentation platform that demonstrates the complete journey from **Data Ingestion to Query Filtering** using modern vector search technology. It's designed for:
+- Indexes PDF, DOCX, PPTX, TXT, Markdown, HTML, CSV and a few more text formats. With the OCR extra it also reads scanned PDF pages and images.
+- Watches folders. New files are indexed within seconds, edited files get a new revision, deleted files leave the index. A periodic rescan catches anything the file system events miss, including network shares.
+- Searches three ways: `lexical` (BM25 on SQLite FTS5), `dense` (any sentence-transformers model, several at once if you like) and `hybrid` (both, fused with reciprocal rank fusion). Reranking with a cross-encoder is a toggle.
+- Explains every result: which retrievers found it and at what rank, which query terms matched, the cosine similarity per model, the reranker score, a confidence label, the page and character span in the source, and per-stage timings for the request.
+- Compares strategies side by side in the UI, and scores them on your own labelled queries with `contextsearch eval` (recall, MRR, nDCG, latency).
+- Runs as one process with one SQLite file. No external services. Keyword search works with zero heavy dependencies; the dense extra adds torch and sentence-transformers.
+- Ships with a web UI (light and dark, no build step, no CDN), a REST API with an OpenAPI page, a CLI, JSON logs with request ids, Prometheus metrics, API key auth, a folder allow-list, a Dockerfile and a compose file.
 
-- **Students & College Grads**: Learn how semantic search works in practice, not just theory
-- **Researchers**: Test and experiment with your own documents and models  
-- **Developers**: Understand the fundamentals of vector databases and embeddings
-- **Data Scientists**: Perform A/B testing on different models and document processing techniques
+<p align="center">
+  <img src="docs/images/compare.jpg" alt="Comparing keyword, hybrid and reranked results side by side" width="900" />
+</p>
 
-Think of it as your **personal laboratory** for understanding how modern search engines actually understand what you're looking for, not just match keywords.
+## Quick start
 
-## ✨ Key Features
+```bash
+git clone https://github.com/inboxpraveen/context-search-engine.git
+cd context-search-engine
+python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -e ".[dense]"                          # keyword + semantic search
 
-### Current Features (v2.0.0)
-
-- **🎨 Google-Style Interface**: Clean, professional search experience with centered search box
-- **⚙️ Fully Configurable**: Customize models, chunking, search parameters via UI
-- **📁 Document Upload**: Drag & drop PDF, Word, and text files
-- **🔍 Smart Search**: Type-ahead search that understands context (3+ characters, 500ms debounce)
-- **🧠 AI-Powered**: Supports any HuggingFace sentence-transformer model (default: DistilBERT)
-- **⚡ Fast Search**: FAISS vector database for lightning-quick similarity search
-- **📊 Enhanced Results**: View document name, page number, chunk number, and source
-- **🔄 Sort & Filter**: Sort results by relevance or recent uploads
-- **📱 Fully Responsive**: Works perfectly on desktop, tablet, and mobile
-- **💾 Smart Storage**: Timestamp-based file organization (YYYYMMDD/filename_HHMMSS.ext)
-- **🔒 Privacy First**: Everything runs locally on your machine
-- **📈 Version Tracking**: Built-in version display and changelog
-
-### What Makes It Special for Learning
-
-- **See the Process**: Watch how documents get chunked, embedded, and indexed
-- **Experiment Freely**: Upload your own documents and test different queries
-- **Model Comparison**: Swap between different embedding models with a few clicks
-- **Real-World Testing**: Compare search results with different document types
-- **A/B Testing Ready**: Perfect for testing different chunking strategies or models
-- **Transparent Architecture**: Clean, readable code that's easy to understand and modify
-- **Configuration Playground**: Tune parameters and see immediate effects on search quality
-
-## 📸 Screenshots
-
-### Upload & Configure Interface
-![Upload Screen 1](./static/images/Upload-Section.png)
-![Upload Screen 2](./static/images/Uploading-File.png)
-![Configure Screen](./static/images/Configuration-Section.png)
-
-### Search
-![Search without Documents](./static/images/Dashboard-Without-Documents.png)
-![Search with Documents](./static/images/Dashboard-With-Documents.png)
-![Search with Documents](./static/images/Search-Results.png)
-
-### Document Management
-![Document Management](./static/images/Manage-Documents.png)
-
-## 🏗️ Architecture
-
-The application follows a simple, modular architecture perfect for learning and experimentation:
-
-![Project Architecture](./static/images/Project-Architecture.png)
-
-### How It Works
-
-1. **Document Upload**: User uploads documents (PDF, DOCX, TXT)
-2. **Text Extraction**: System extracts plain text from documents (with page tracking for PDFs)
-3. **Configurable Chunking**: Text is split into chunks (default: 500 words with 50-word overlap)
-4. **Embedding Generation**: Each chunk is converted to vectors using configured model (default: DistilBERT 768-dim)
-5. **FAISS Indexing**: Vectors are stored in FAISS index for fast similarity search
-6. **Search Processing**: User queries are vectorized and matched against indexed chunks
-7. **Smart Results**: Top results returned with metadata (page, chunk, relevance score)
-8. **Flexible Sorting**: Results can be sorted by relevance or recency
-
-### Configuration Options
-
-The system is fully configurable through the UI:
-
-- **Model Selection**: Any HuggingFace sentence-transformer model
-- **Chunk Size**: 100-2000 words (default: 500)
-- **Overlap**: 0-500 words (default: 50)
-- **Result Count**: 1-20 results (default: 5)
-- **Top K**: 5-50 candidates (default: 10)
-- **Dimension**: Match your model's output (default: 768)
-
-## 📂 Project Structure
-
-```
-context-search-engine/
-│
-├── app.py                      # Flask web application & API endpoints
-├── document_processor.py       # Document processing, embedding & indexing
-├── config.py                   # Configuration management system
-├── search_engine.py           # Legacy (can be removed)
-├── create_index.py            # Legacy (can be removed)
-│
-├── templates/
-│   └── index.html             # Main UI (Google-style search interface)
-│
-├── static/
-│   ├── css/
-│   │   └── style.css          # Modern minimalist styling
-│   └── images/                # UI assets & screenshots
-│
-├── uploads/                   # Document storage (auto-organized)
-│   └── YYYYMMDD/             # Date-based folders
-│       └── filename_HHMMSS.ext  # Timestamped files
-│
-├── faiss_index.idx            # FAISS vector index (generated)
-├── index_to_chunk.pkl         # Chunk-to-text mapping (generated)
-├── document_metadata.pkl      # Document metadata (generated)
-├── app_config.json           # User configuration (generated)
-│
-├── requirements.txt           # Python dependencies
-├── .gitignore                # Git ignore rules
-├── CHANGELOG.md              # Version history & release notes
-├── LICENSE                   # MIT License
-└── README.md                 # This file
+contextsearch doctor                               # checks Python, SQLite FTS5, torch, the model cache
+contextsearch serve                                # UI and API at http://127.0.0.1:8080
 ```
 
-## 🚀 Getting Started
+On Linux, `pip install` pulls the CUDA build of torch (several GB) unless you install the CPU build first: `pip install torch --index-url https://download.pytorch.org/whl/cpu`. Conda users can do the same inside any environment; `pip install -e .` alone gives keyword search with no torch at all.
 
-### Prerequisites
+The first search downloads the default embedding model (`BAAI/bge-small-en-v1.5`, about 130 MB) into the Hugging Face cache. After that everything works offline.
 
-- **Python**: 3.8 or higher
-- **pip**: Python package manager
-- **RAM**: 4GB minimum (8GB recommended for larger documents)
-- **Internet**: First run only (downloads embedding model ~250MB)
-- **Disk Space**: ~500MB for models + your documents
+Try it on the bundled examples:
 
-### Installation
+```bash
+contextsearch index examples/sample-docs                       # scans, chunks, embeds; prints a summary
+contextsearch search "how do I get my money back" --strategy hybrid
+contextsearch eval examples/labels.json --strategies lexical,dense,hybrid,hybrid+rerank
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/inboxpraveen/context-search-engine.git
-   cd context-search-engine
-   ```
+Or open the UI, go to Sources, add a folder, and start typing.
 
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   
-   This installs:
-   - `Flask 3.1.2` - Web framework
-   - `transformers 4.57.3` - HuggingFace transformers for embeddings
-   - `torch` - PyTorch for model inference
-   - `faiss-cpu 1.13.0` - Vector similarity search
-   - `PyPDF2 3.0.1` - PDF text extraction
-   - `python-docx 1.2.0` - Word document processing
-   - `numpy 2.3.5` - Numerical operations
-   - Other supporting libraries
+## How a search works
 
-3. **Run the application**
-   ```bash
-   python app.py
-   ```
+1. The query goes to FTS5 as a keyword search (stemmed, quoted phrases kept, common words dropped) and to each embedding model as a vector. Each retriever returns its top candidates.
+2. The candidate lists are fused. Reciprocal rank fusion is the default: it needs no score calibration and a chunk both retrievers like reliably rises to the top.
+3. Optionally, a cross-encoder reads the query together with each of the top candidates and rescores them. This is the most precise stage and the most expensive one, so it is off by default and a toggle in the UI.
+4. Chunks are grouped by document, snippets are cut around the matches, and every hit gets a confidence in 0 to 1 with a label (strong, likely, weak).
 
-4. **Open your browser**
-   ```
-   Navigate to: http://localhost:5000
-   ```
+[docs/SEARCH.md](docs/SEARCH.md) covers the strategies, the fusion maths, how confidence is computed and how to calibrate it, and which models to pick.
 
-### First Time Use
+## What a result looks like
 
-1. You'll see a Google-style search interface
-2. If no documents exist, you'll see "Please upload some documents to start searching"
-3. Click **"Upload Documents"** button (top right)
-4. Drag & drop your files or click to browse
-5. Upload PDF, Word (.docx), or text (.txt) files
-6. Wait for indexing to complete (progress shown)
-7. Start searching with the main search box!
-
-### Using the Search
-
-- Type at least **3 characters** to trigger search
-- Search happens automatically as you type (500ms delay)
-- Press **Enter** for immediate search
-- Results show:
-  - **Rank** (#1, #2, etc.)
-  - **Document Name**
-  - **Page Number** (for PDFs)
-  - **Chunk Number**
-  - **Matched Text**
-  - **Relevance Score**
-  - **"View Source"** button
-
-### Sorting Results
-
-Use the dropdown to sort by:
-- **Relevance**: Best semantic matches first (default)
-- **Recent**: Newest documents first
-
-### Managing Documents
-
-- Click the **"Documents"** stat card to view all documents
-- Table shows: Sr. No, Name, Type, Pages, Upload Date, Actions
-- **View**: See full document content
-- **Delete**: Remove document (with confirmation)
-
-### Configuration
-
-Click **"Configure"** button (top right) to customize:
-
-1. **Model**: Enter any HuggingFace repo ID
-   - Examples: `distilbert-base-uncased`, `sentence-transformers/all-MiniLM-L6-v2`
-   - Must be compatible with sentence-transformers
-   
-2. **Chunk Size**: Words per chunk (100-2000)
-   - Smaller = more precise, more chunks
-   - Larger = more context, fewer chunks
-   
-3. **Overlap**: Words of overlap between chunks (0-500)
-   - Prevents information loss at chunk boundaries
-   
-4. **Search Results**: Number of results to display (1-20)
-
-5. **Top K**: Size of candidate pool (5-50)
-   - Higher = better quality, slower search
-   
-6. **Dimension**: Model output dimension
-   - Must match your chosen model's embedding size
-
-**Note**: Changing model or chunking requires rebuilding the index (automatic prompt).
-
-## 🧪 Use Cases & Experiments
-
-### For Students
-
-#### Learn Vector Search
-- Upload a textbook chapter and search for concepts
-- See how similar concepts are grouped together
-- Compare semantic vs keyword matching
-
-#### Understand Embeddings  
-- Try different phrasings of the same query
-- Observe how context affects results
-- Experiment with synonyms and related terms
-
-#### Study Information Retrieval
-- Upload multiple documents on same topic
-- See how the system ranks relevance
-- Learn about precision and recall
-
-### For Researchers
-
-#### Test Document Processing
-- Compare different chunk sizes (300 vs 500 vs 1000 words)
-- Experiment with overlap percentages
-- Analyze impact on retrieval quality
-
-#### Model Comparison
-Test different embedding models:
-- `distilbert-base-uncased` (fast, good quality)
-- `sentence-transformers/all-MiniLM-L6-v2` (balanced)
-- `sentence-transformers/all-mpnet-base-v2` (high quality)
-- `bert-base-uncased` (standard BERT)
-
-#### Domain Testing
-- Upload domain-specific documents (medical, legal, technical)
-- Test if general models work or if fine-tuning is needed
-- Measure accuracy on domain queries
-
-### For Developers
-
-#### Integration Testing
-- Use as microservice in larger applications
-- Test API endpoints programmatically
-- Integrate with existing document workflows
-
-#### Performance Benchmarking
-- Test with different document volumes (10, 100, 1000+ docs)
-- Measure indexing time vs document size
-- Optimize chunk size for your use case
-
-#### UI/UX Experiments
-- Modify the frontend for specific use cases
-- Add custom features (filters, tags, etc.)
-- Create domain-specific variants
-
-### A/B Testing Ideas
-
-1. **Model Comparison**
-   - Test: DistilBERT vs BERT vs Sentence-BERT
-   - Measure: Query response time, relevance scores
-   - Goal: Find best speed/accuracy tradeoff
-
-2. **Chunk Size Impact**
-   - Test: 300 vs 500 vs 1000 word chunks
-   - Measure: Result precision, context coverage
-   - Goal: Optimal chunk size for your documents
-
-3. **Overlap Effects**
-   - Test: 0% vs 10% vs 20% overlap
-   - Measure: Information continuity, duplicate results
-   - Goal: Best overlap to prevent context loss
-
-4. **Pooling Methods**
-   - Modify code to test: Mean vs Max vs CLS pooling
-   - Measure: Semantic understanding quality
-   - Goal: Best pooling for your document type
-
-## 🔧 Advanced Usage
-
-### Custom Models
-
-To use a custom model:
-
-1. Click "Configure" → Enter HuggingFace repo ID
-2. Set correct dimension for your model
-3. Save configuration
-4. Rebuild index when prompted
-
-**Popular Models:**
-- `sentence-transformers/all-MiniLM-L6-v2` (384-dim, fast)
-- `sentence-transformers/all-mpnet-base-v2` (768-dim, accurate)
-- `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384-dim, multilingual)
-
-### Programmatic Access
-
-The application exposes these endpoints:
-
-- `GET /` - Main UI
-- `POST /search` - Search documents
-- `POST /upload` - Upload files
-- `GET /documents` - List all documents
-- `GET /documents/<id>` - Get document content
-- `DELETE /documents/<id>` - Delete document
-- `GET /config` - Get configuration
-- `POST /config` - Update configuration
-- `POST /rebuild-index` - Rebuild index
-
-### Configuration File
-
-Settings are stored in `app_config.json`:
+Abbreviated from a real response on the bundled examples (`text`, `also_matched` and a few fields left out):
 
 ```json
 {
-  "model_repo_id": "distilbert-base-uncased",
-  "chunk_size": 500,
-  "chunk_overlap": 50,
-  "num_search_results": 5,
-  "top_k": 10,
-  "dimension": 768
+  "rank": 1,
+  "score": 0.032787,
+  "confidence": 1.0, "confidence_label": "strong",
+  "document": {"id": "5b1f...", "filename": "refund-and-returns-policy.md", "relpath": "policies/refund-and-returns-policy.md", "revision": 1, "pages": 1},
+  "page": 1, "char_start": 0, "char_end": 1154,
+  "snippet": "... support@harborvale.example with the order number.  ## Late deliveries  If an order arrives more than seven days after the promised delivery date, the customer may request a full refund ...",
+  "highlights": [[57, 61], [62, 72], [128, 136], [178, 184]],
+  "evidence": {
+    "found_by": ["lexical", "dense:BAAI/bge-small-en-v1.5"],
+    "agreement": true,
+    "lexical": {"rank": 1, "bm25": 6.509, "matched_terms": ["refund", "delivery", "refunds", "late", "deliveries"], "covered_terms": ["refund", "late", "delivery"], "query_terms": 3},
+    "dense": {"BAAI/bge-small-en-v1.5": {"rank": 1, "cosine": 0.7431}},
+    "fused_score": 0.032787, "fusion": "rrf",
+    "confidence_parts": {"lexical_coverage": 1.0, "dense_similarity": 0.874, "source": "lexical+dense"},
+    "locator": {"page": 1, "char_start": 0, "char_end": 1154, "chunk_index": 0}
+  }
 }
 ```
 
-You can edit this file directly or use the UI.
+The response also carries `timings` per stage, the `request_id` that appears in the server log, and any `warnings` (for example when hybrid ran as keyword search because no dense index exists yet). `GET /api/v1/documents/{id}/pages/1` returns the page text, so `char_start` and `char_end` point at the exact passage; the UI opens it highlighted.
 
-## 🔮 What's Next
+## Screenshots
 
-### Version 2.1 (Planned)
+| | |
+|---|---|
+| ![Search results](docs/images/search-results.jpg) Results grouped by document, with page, matched terms and a confidence label | ![Page viewer](docs/images/viewer.jpg) The viewer opens the page with the exact passage and the query terms marked |
+| ![Sources](docs/images/sources.jpg) Watched folders with scan summaries | ![Documents](docs/images/documents.jpg) Every document with pages, passages and revisions |
+| ![Activity](docs/images/activity.jpg) Models, jobs, recent searches, events and health | ![Dark theme](docs/images/search-dark.jpg) The same search in the dark theme |
 
-- [ ] **Multi-User Support**: User authentication and personal document spaces
-- [ ] **Document Folders**: Organize documents into categories
-- [ ] **Search History**: Track and revisit previous searches  
-- [ ] **Export Results**: Download search results as CSV/JSON
-- [ ] **Query Analytics**: Track popular queries and patterns
+## Documentation
 
-### Version 2.2 (Planned)
+| Document | Covers |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | components, the index layout, how folder sync and revisions work, jobs |
+| [docs/SEARCH.md](docs/SEARCH.md) | strategies, fusion, reranking, confidence, choosing and comparing models |
+| [docs/API.md](docs/API.md) | every endpoint with examples (interactive version at `/docs`) |
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | all `CSE_*` settings, profiles, derived paths |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | production checklist, Linux and Windows, Docker, systemd, nginx, upgrading from 2.x |
+| [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | memory and latency numbers, sizing, what to tune |
+| [docs/EXTENDING.md](docs/EXTENDING.md) | using contextsearch as a library, adding readers, embedders and rerankers |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | symptoms, causes and fixes |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | what comes next (image embeddings, audio, PostgreSQL) |
+| [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) | |
 
-- [ ] **Batch Upload**: Upload entire folders at once
-- [ ] **Advanced Filters**: Filter by date range, document type, custom tags
-- [ ] **Text Highlighting**: Highlight matched text within results
-- [ ] **Query Suggestions**: Autocomplete and related queries
-- [ ] **Document Preview**: Quick preview without full view
+## CLI
 
-### Version 3.0 (Planned)
+```
+contextsearch serve      [--host H] [--port P] [--profile development|production]
+contextsearch index      PATH [--name N] [--no-recursive] [--include pdf,docx] [--exclude GLOBS]
+contextsearch sync       [SOURCE_ID]
+contextsearch search     QUERY [--strategy lexical|dense|hybrid] [--model M] [--rerank] [--top-k N] [--json]
+contextsearch sources | documents [--q TEXT] | models | stats
+contextsearch build      MODEL          build a dense index for another embedding model
+contextsearch drop       MODEL
+contextsearch reindex    [--force]      re-chunk after changing the chunking settings
+contextsearch eval       LABELS.json [--strategies lexical,hybrid,hybrid+rerank] [--k 10]
+contextsearch doctor
+contextsearch config     [--markdown | --json]
+contextsearch db         check | vacuum | optimize
+```
 
-- [ ] **RESTful API**: Full API with authentication
-- [ ] **Docker Support**: Container images and deployment guides
-- [ ] **Cloud Templates**: Deploy to AWS, GCP, Azure
-- [ ] **Analytics Dashboard**: Visualize search patterns and document stats
-- [ ] **Multilingual Support**: UI and search in multiple languages
-- [ ] **OCR Integration**: Extract text from scanned PDFs and images
+Every command accepts `--data-dir`, `--profile` and `--log-level`. `python -m contextsearch` works too.
 
-### Future Enhancements
+## REST API
 
-- **GPU Support**: FAISS GPU for faster indexing and search
-- **Incremental Indexing**: Add documents without full rebuild
-- **Advanced Chunking**: Smart chunking based on document structure
-- **Query Expansion**: Automatic query reformulation
-- **Result Caching**: Cache frequent queries
-- **Hybrid Search**: Combine semantic and keyword search
+Everything the UI does goes through the API under `/api/v1`; the interactive reference is served at `/docs`. Set `CSE_API_KEY` to require a key, sent as `X-API-Key` or `Authorization: Bearer`. Errors are JSON with `error`, `code`, `status`, `details` and `request_id`.
 
-See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+```bash
+curl "http://localhost:8080/api/v1/search?q=refund+for+a+late+delivery&strategy=hybrid&top_k=5" -H "X-API-Key: change-me"
 
-## 🤝 Contributing
+curl -X POST http://localhost:8080/api/v1/sources -H "X-API-Key: change-me" \
+     -H "Content-Type: application/json" -d '{"path": "/srv/docs", "name": "Shared drive"}'
 
-We welcome contributions from everyone! Whether you're fixing a bug, adding a feature, improving documentation, or sharing ideas.
+curl -F "files=@handbook.pdf" http://localhost:8080/api/v1/documents/upload -H "X-API-Key: change-me"
+```
 
-**📖 [Read our Contributing Guide](CONTRIBUTING.md) for detailed information on how to contribute.**
+## As a library
 
-### How to Contribute
+```python
+from contextsearch import Engine
 
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make your changes**
-   - Write clean, readable code
-   - Add comments for complex logic
-   - Follow existing code style
-   - Update documentation if needed
-4. **Test thoroughly**
-   - Test with different document types
-   - Check responsive design on mobile
-   - Verify search accuracy
-   - Test edge cases
-5. **Submit a Pull Request**
-   - Describe what you changed and why
-   - Reference any related issues
-   - Include screenshots for UI changes
-   - Update CHANGELOG.md
+with Engine.open("./data", embedding_models="BAAI/bge-small-en-v1.5") as engine:
+    source, job = engine.add_folder("/srv/docs")
+    job.wait()
+    for hit in engine.search("refund for a late delivery", strategy="hybrid", top_k=5).hits:
+        print(hit.confidence_label, hit.document.relpath, "page", hit.chunk.page, hit.snippet)
+```
 
-### Areas for Contribution
+`Engine` owns the database, the models, the background worker and the folder watcher. Pass `configure_logs=False` if your application sets up logging itself. [docs/EXTENDING.md](docs/EXTENDING.md) has the full library tour.
 
-- 🐛 **Bug Fixes**: Found a bug? Fix it!
-- ✨ **New Features**: Implement features from the roadmap
-- 📚 **Documentation**: Improve README, add tutorials, create guides
-- 🎨 **UI/UX**: Enhance interface, add themes, improve accessibility
-- 🧪 **Testing**: Add unit tests, integration tests, performance tests
-- 🌍 **Localization**: Translate UI to other languages
-- 📊 **Examples**: Create Jupyter notebooks, video tutorials, blog posts
-- 🔧 **Tools**: Build deployment scripts, Docker configs, CI/CD pipelines
+## Good to know
 
-### Code Style
+- One process. The vector indexes and the watcher live in memory, so run a single `contextsearch serve` (or one uvicorn worker) per data folder. It serves searches from a thread pool while indexing runs in the background.
+- Memory is roughly `chunks x dimension x 4 bytes` per embedding model: 100k chunks with a 384-dimension model is about 150 MB. [docs/PERFORMANCE.md](docs/PERFORMANCE.md) has the table.
+- The data folder holds one SQLite file (documents, pages, chunks, vectors, history) plus uploads and logs. Back it up by copying the folder.
+- Everything runs on your machine. Nothing is sent anywhere, and after the first model download it works without internet access.
 
-- **Python**: Follow PEP 8
-- **JavaScript**: Use ES6+ features, prefer const/let over var
-- **HTML**: Semantic HTML5, proper indentation
-- **CSS**: BEM naming convention preferred
-- **Comments**: Explain why, not what
-- **Commits**: Clear, descriptive commit messages
+## Contributing
 
-### Reporting Issues
+Bug reports, fixes and new readers or embedders are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains the setup, the tests and the writing conventions.
 
-Found a bug or have a suggestion? [Open an issue](https://github.com/inboxpraveen/context-search-engine/issues) with:
+## License
 
-- **Clear title** describing the issue
-- **Detailed description** with context
-- **Steps to reproduce** (for bugs)
-- **Expected vs actual behavior**
-- **Screenshots** if applicable
-- **Environment details** (OS, Python version, etc.)
-
-### Feature Requests
-
-Have an idea? We'd love to hear it!
-
-- Check existing issues first to avoid duplicates
-- Explain the use case and benefit
-- Provide examples or mockups if possible
-- Tag with "enhancement" label
-
-## 📚 Learning Resources
-
-Want to dive deeper into the concepts?
-
-### Vector Embeddings
-- [Sentence Transformers Documentation](https://www.sbert.net/)
-- [The Illustrated Word2vec](https://jalammar.github.io/illustrated-word2vec/)
-
-### Semantic Search
-- [What is Semantic Search?](https://www.elastic.co/what-is/semantic-search)
-- [Building a Semantic Search Engine](https://www.pinecone.io/learn/semantic-search/)
-
-### FAISS
-- [FAISS Documentation](https://faiss.ai/)
-- [FAISS Tutorial](https://www.pinecone.io/learn/faiss-tutorial/)
-
-### BERT & Transformers
-- [The Illustrated BERT](https://jalammar.github.io/illustrated-bert/)
-- [HuggingFace Transformers](https://huggingface.co/docs/transformers/)
-- [Understanding DistilBERT](https://medium.com/huggingface/distilbert-8cf3380435b5)
-
-### Information Retrieval
-- [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/)
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-### You are free to:
-- ✅ Use commercially
-- ✅ Modify and adapt
-- ✅ Distribute
-- ✅ Use privately
-- ✅ Use in patent claims
-
-### Just remember to:
-- Include the original license and copyright notice
-- State significant changes made
-- Include the full license text in distributions
-
-## 🙏 Acknowledgments
-
-This project stands on the shoulders of giants:
-
-- **[Hugging Face](https://huggingface.co/)**: For the amazing Transformers library and model hub
-- **[Facebook AI](https://ai.facebook.com/)**: For FAISS vector search library
-- **[Flask Team](https://flask.palletsprojects.com/)**: For the excellent web framework
-- **[PyPDF2](https://pypdf2.readthedocs.io/)**: For PDF processing capabilities
-- **[python-docx](https://python-docx.readthedocs.io/)**: For Word document support
-- **Open Source Community**: For all the supporting libraries and tools
-
-Special thanks to all contributors and users who provide feedback and help improve this project!
-
-## 📬 Contact & Support
-
-### Get Help
-- **Issues**: [GitHub Issues](https://github.com/inboxpraveen/context-search-engine/issues)
-- **Email**: [inboxpraveen.17@gmail.com](mailto:inboxpraveen.17@gmail.com)
-
-### Stay Updated
-- **Watch** this repo for updates
-- **Star** ⭐ if you find it useful
-- **Fork** to experiment and contribute
-- **Share** with others who might benefit
-
-## 🌟 Star History
-
-If this project helped you learn something new or solved a problem, please consider giving it a star!
-
-[![Star History Chart](https://api.star-history.com/svg?repos=inboxpraveen/context-search-engine&type=Date)](https://star-history.com/#inboxpraveen/context-search-engine&Date)
-
----
-
-**Version 2.0.0** | Made with ❤️ for learners, researchers, and developers exploring the world of semantic search.
-
-**[View Changelog](CHANGELOG.md)** | **[Contributing Guide](CONTRIBUTING.md)** | **[Report Bug](https://github.com/inboxpraveen/context-search-engine/issues)** | **[Request Feature](https://github.com/inboxpraveen/context-search-engine/issues)**
+MIT. See [LICENSE](LICENSE).

@@ -1,13 +1,24 @@
-uploads/
-*.pkl
-*.idx
-app_config.json
-__pycache__/
-*.pyc
-*.pyo
+# runtime data: database, uploads, logs, and the compose bind mount
+data/
+documents/
+*.db
+*.db-wal
+*.db-shm
 .env
-.venv
-venv/
+
+# python
+__pycache__/
+*.py[cod]
 *.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# editors and OS
+.vscode/
+.idea/
 .DS_Store
-*.log
+Thumbs.db

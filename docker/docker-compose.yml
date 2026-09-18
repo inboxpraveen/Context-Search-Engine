@@ -1,0 +1,29 @@
+# docker compose -f docker/docker-compose.yml up -d
+#
+# Put your documents in ./documents (or change the bind mount) and open
+# http://localhost:8080. Add the folder /docs as a source from the UI or:
+#   curl -X POST localhost:8080/api/v1/sources -H "X-API-Key: change-me" \
+#        -H "Content-Type: application/json" -d '{"path": "/docs"}'
+
+services:
+  contextsearch:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: contextsearch:3.0.0
+    ports:
+      - "8080:8080"
+    environment:
+      CSE_API_KEY: change-me
+      CSE_ALLOWED_ROOTS: /docs
+      CSE_EMBEDDING_MODELS: BAAI/bge-small-en-v1.5
+      CSE_RERANK: "false"
+      CSE_OCR: "false"
+      CSE_SCAN_INTERVAL_SECONDS: "300"
+    volumes:
+      - cse-data:/data
+      - ../documents:/docs:ro
+    restart: unless-stopped
+
+volumes:
+  cse-data:

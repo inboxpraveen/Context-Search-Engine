@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contextsearch"
+version = "3.0.0"
+description = "Self-hosted hybrid search over your documents: keyword and semantic retrieval with evidence for every result."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Praveen Kumar" }]
+keywords = ["search", "semantic-search", "bm25", "hybrid-search", "embeddings", "rag", "document-search"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Indexing",
+]
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30",
+    "python-multipart>=0.0.9",
+    "numpy>=1.24",
+    "pypdfium2>=4.30",
+    "python-docx>=1.1",
+    "python-pptx>=1.0",
+    "watchdog>=4",
+]
+
+[project.optional-dependencies]
+dense = ["sentence-transformers>=3.0,<7"]
+ocr = ["rapidocr-onnxruntime>=1.3", "pillow>=10"]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.5"]
+
+[project.scripts]
+contextsearch = "contextsearch.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/inboxpraveen/context-search-engine"
+Documentation = "https://github.com/inboxpraveen/context-search-engine/tree/main/docs"
+Issues = "https://github.com/inboxpraveen/context-search-engine/issues"
+
+[tool.setuptools.packages.find]
+include = ["contextsearch*"]
+
+[tool.setuptools.package-data]
+contextsearch = ["ui/*", "ui/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not slow' -p no:cacheprovider"
+markers = ["slow: needs an embedding model on disk or a network download (run with -m slow)"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["docs", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "SIM", "RUF"]
+ignore = [
+    "E501",   # long lines are a judgement call, not a lint failure
+    "B008",   # function calls in argument defaults are used for FastAPI dependencies
+    "SIM105", # try/except/pass with a comment reads better than contextlib.suppress
+    "SIM108", # a ternary is not always clearer than if/else
+    "RUF012", # mutable class attributes are fine on plain config classes
+    "UP007",  # keep the X | None style consistent with runtime annotations
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "SIM117", "SIM905"]

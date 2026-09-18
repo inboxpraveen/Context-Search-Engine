@@ -1,0 +1,14 @@
+{
+  "queries": [
+    {"query": "refund for a late delivery", "relevant": ["refund-policy.md"]},
+    {"query": "how do I get my money back", "relevant": ["refund-policy.md"]},
+    {"query": "what to do when the roaster is burning", "relevant": ["safety-manual.txt"]},
+    {"query": "chaff collector", "relevant": ["safety-manual.txt", "meeting-notes.txt"]},
+    {"query": "when do tracking numbers get sent", "relevant": ["shipping.md"]},
+    {"query": "laptop for a new employee", "relevant": ["employee-handbook.md"]},
+    {"query": "how much notice before leaving the company", "relevant": ["employee-handbook.md"]},
+    {"query": "carrier missed the delivery target", "relevant": ["meeting-notes.txt"]},
+    {"query": "cold brew shipping on fridays", "relevant": ["shipping.md", "meeting-notes.txt"]},
+    {"query": "sick leave certificate", "relevant": ["employee-handbook.md"]}
+  ]
+}

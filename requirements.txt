@@ -1,12 +1,5 @@
-urllib3==2.5.0
-google-auth==2.41.1
-google-auth-oauthlib==1.2.3
-Jinja2==3.1.6
-Flask==3.1.2
-scikit-learn==1.7.2
-faiss-cpu==1.13.0
-transformers[torch]==4.57.3
-numpy==2.3.5
-PyPDF2==3.0.1
-python-docx==1.2.0
-Werkzeug==3.1.4
+# Full install for a quick start: keyword search, dense search and OCR.
+# On Linux, install the CPU build of torch first if you do not want the CUDA wheels:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# The package itself (pyproject.toml) is the source of truth for version ranges.
+-e .[dense,ocr,dev]
