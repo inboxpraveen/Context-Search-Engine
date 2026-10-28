@@ -4,33 +4,7 @@ contextsearch is one Python process around one SQLite file. This page walks thro
 
 ## Components
 
-```
-                 +-----------------------------+
-   browser  <--> |  FastAPI app  (api/)         |  <--> curl, your code
-                 |  routes, auth, error shape   |
-                 +--------------+--------------+
-                                |
-                 +--------------v--------------+
-                 |  Engine  (engine.py)         |   one per data folder
-                 |  search, sources, uploads    |
-                 +---+----------+-----------+--+
-                     |          |           |
-        +------------v--+  +---v-------+  +v-----------------+
-        | Searcher      |  | Ingest    |  | Store (SQLite)   |
-        | lexical/dense |  | worker    |  | docs, pages,     |
-        | fusion/rerank |  | watcher   |  | chunks, FTS5,    |
-        +-------+-------+  +-----+-----+  | vectors, events  |
-                |                |        +------------------+
-        +-------v-------+  +-----v-----+
-        | VectorIndex   |  | Readers   |  pdf, docx, pptx, text, html, image (OCR)
-        | per model     |  | Chunker   |
-        +---------------+  +-----------+
-                |
-        +-------v-------+
-        | Embedders     |  sentence-transformers, one instance per model
-        | Rerankers     |  cross-encoders
-        +---------------+
-```
+<p align="center"><img src="images/architecture.png" alt="Architecture: browser and API clients call a FastAPI app over one Engine. The Engine owns a Searcher that reads from the SQLite store and an ingest worker that writes to it. Vector indexes, embedding and reranking models, and readers with the chunker sit underneath" width="900" /></p>
 
 | Module | Job |
 |---|---|
@@ -107,7 +81,7 @@ With `watch_folders` on (the default), `watchdog` subscribes to file system even
 
 All writes go through one background thread with a queue. That keeps SQLite happy (one writer), keeps memory bounded (one embedding batch in flight) and makes progress easy to report. The queue coalesces repeated events for the same file until it starts.
 
-Jobs are `sync` (scan a source), `file` (index or remove one file), `build_model` (embed every chunk that lacks a vector for a model) and `reindex`. Each job carries progress (done, total, current file, counts by outcome), an error list and a result; they are visible at `/api/v1/jobs`, in the Activity page and in `contextsearch jobs`. A running job can be cancelled; it stops after the current file.
+Jobs are `sync` (scan a source), `file` (index or remove one file), `build_model` (embed every chunk that lacks a vector for a model) and `reindex`. Each job carries progress (done, total, current file, counts by outcome), an error list and a result; they are visible at `/api/v1/jobs` and in the Activity page. `contextsearch jobs` lists the jobs of its own process, so it is only useful for jobs the same command started. A running job can be cancelled; it stops after the current file.
 
 Uploads through the API land in `<data_dir>/uploads/<date>/` and go through the same path as a watched file. By default the upload call waits for indexing to finish so the file is searchable when the response comes back.
 

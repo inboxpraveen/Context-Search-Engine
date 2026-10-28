@@ -2,6 +2,8 @@
 
 This is the reference for what happens between a query and a ranked list, and for the numbers attached to every result. It also says how to choose between the options, and how to measure instead of guess.
 
+<p align="center"><img src="images/search-pipeline.png" alt="A search request: the query goes to keyword and semantic retrieval in parallel, the lists are fused, an optional cross-encoder reranks the top candidates, and the results are assembled into hits with their evidence" width="900" /></p>
+
 ## The three strategies
 
 | Strategy | What it does | Strong at | Weak at |

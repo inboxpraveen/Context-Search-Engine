@@ -52,6 +52,10 @@ Or open the UI, go to Sources, add a folder, and start typing.
 
 ## How a search works
 
+<p align="center">
+  <img src="docs/images/search-pipeline.png" alt="A search request: keyword and semantic retrieval in parallel, fusion, optional cross-encoder rerank, then hits with their evidence" width="900" />
+</p>
+
 1. The query goes to FTS5 as a keyword search (stemmed, quoted phrases kept, common words dropped) and to each embedding model as a vector. Each retriever returns its top candidates.
 2. The candidate lists are fused. Reciprocal rank fusion is the default: it needs no score calibration and a chunk both retrievers like reliably rises to the top.
 3. Optionally, a cross-encoder reads the query together with each of the top candidates and rescores them. This is the most precise stage and the most expensive one, so it is off by default and a toggle in the UI.
