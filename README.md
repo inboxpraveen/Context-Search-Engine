@@ -1,6 +1,7 @@
 # contextsearch
 
 [![CI](https://github.com/inboxpraveen/context-search-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/inboxpraveen/context-search-engine/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/inboxpraveen/Context-Search-Engine)](https://github.com/inboxpraveen/Context-Search-Engine/releases)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 

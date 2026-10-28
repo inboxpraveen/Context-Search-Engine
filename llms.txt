@@ -1,0 +1,30 @@
+# contextsearch
+
+> Self-hosted hybrid search over your own documents. It indexes PDF, DOCX, PPTX, text, Markdown and HTML files from watched folders and answers queries with BM25 on SQLite FTS5 and embedding search fused with reciprocal rank fusion, optional cross-encoder reranking, and the page, passage and reasons behind every result. One Python process and one SQLite file, with a REST API, a web UI, a CLI and a Python library. MIT licensed.
+
+The project does not use a language model to rewrite or generate answers. Results are the retrieved passages themselves, each with evidence: which retrievers found it and at what rank, matched query terms, cosine similarity per model, a confidence label, and the page and character span in the source. Everything runs locally; after the first embedding model download it works offline.
+
+## Start here
+
+- [README](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/README.md): what it does, quick start, CLI, REST API and library examples.
+- [Search strategies, scoring and models](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/SEARCH.md): keyword, semantic and hybrid search, fusion maths, reranking, how confidence is computed.
+- [Architecture](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/ARCHITECTURE.md): components, the index layout, folder sync and revisions, jobs.
+
+## Operating it
+
+- [API reference](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/API.md): every endpoint under /api/v1 with examples.
+- [Configuration](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/CONFIGURATION.md): all CSE_* settings and profiles.
+- [Deployment](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/DEPLOYMENT.md): production checklist, Docker, systemd, nginx, upgrading from 2.x.
+- [Performance](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/PERFORMANCE.md): memory and latency numbers and sizing.
+- [Troubleshooting](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/TROUBLESHOOTING.md): symptoms, causes and fixes.
+
+## Extending and contributing
+
+- [Extending](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/EXTENDING.md): using it as a library, adding readers, embedders and rerankers.
+- [Contributing](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/CONTRIBUTING.md): setup, tests and writing conventions.
+- [Roadmap](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/docs/ROADMAP.md): image embeddings, audio, PostgreSQL, approximate vector indexes.
+- [Changelog](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/CHANGELOG.md) and [security policy](https://github.com/inboxpraveen/Context-Search-Engine/blob/main/SECURITY.md).
+
+## Optional
+
+- [Project page](https://inboxpraveen.github.io/projects/project-1.html): write-up with screenshots, measurements and the reasoning behind the design.
