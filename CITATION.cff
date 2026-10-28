@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use contextsearch in your work, please cite it as below."
+title: "contextsearch"
+type: software
+authors:
+  - family-names: "Kumar"
+    given-names: "Praveen"
+version: "3.0.0"
+date-released: "2026-09-18"
+license: MIT
+repository-code: "https://github.com/inboxpraveen/Context-Search-Engine"
+url: "https://inboxpraveen.github.io/projects/project-1.html"
+abstract: "Self-hosted hybrid search over your documents: BM25 on SQLite FTS5 and embeddings fused with reciprocal rank fusion, optional cross-encoder reranking, folder watching with revisions, and the page, passage and reasons behind every result."
+keywords:
+  - hybrid search
+  - bm25
+  - semantic search
+  - embeddings
+  - reranking
+  - document search
+  - information retrieval
+  - self-hosted
