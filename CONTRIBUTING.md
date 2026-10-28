@@ -73,6 +73,10 @@ Documentation, docstrings, comments, commit messages and UI text are written for
 
 Open an issue with: the output of `contextsearch doctor`, the version, the operating system and Python version, the log lines around the request id (for API problems), and what you expected instead. For search quality, include the query, what came back and what should have. For a crash while indexing, the file type and, if you can share it, the file.
 
+## Code of conduct
+
+Be kind and constructive. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 ## License
 
 By contributing you agree that your contribution is licensed under the MIT license in [LICENSE](LICENSE).
