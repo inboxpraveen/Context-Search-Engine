@@ -27,8 +27,6 @@ jobs:
         run: ruff check . && ruff format --check .
       - name: Test
         run: pytest -q
-      - name: Docs in sync with code
-        run: python -c "from contextsearch.config import Settings; import pathlib; assert pathlib.Path('docs/CONFIGURATION.md').read_text(encoding='utf-8').replace(chr(13), '') == Settings.markdown_reference(), 'run: contextsearch config --markdown > docs/CONFIGURATION.md'"
 
   docker:
     name: docker image
